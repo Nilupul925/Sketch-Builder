@@ -1,3 +1,4 @@
+// Reusable Button component with variants and sizes
 import React, { forwardRef } from "react";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline";

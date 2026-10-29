@@ -24,6 +24,7 @@ const Navbar = () => {
           </ul>
         </div>
 
+        {/* User actions */}
         <div className="actions">
           {isSignedIn ? (
             <>
