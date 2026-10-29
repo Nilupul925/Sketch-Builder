@@ -1,11 +1,28 @@
 import { Box } from "lucide-react";
 import Button from "./ui/Button";
+import { useOutletContext } from "react-router";
 
 //Navbar function build using "rafce"
 const Navbar = () => {
-  const isSignedIn = false;
-  const userName = "Guest";
-  const handleAuthClick = async () => {};
+  const { isSignedIn, userName, signOut, signIn } =
+    useOutletContext<AuthContext>();
+
+  const handleAuthClick = async () => {
+    if (isSignedIn) {
+      try {
+        await signOut();
+      } catch (e) {
+        console.error(`Puter signing out failed:", ${e}`);
+      }
+    }
+
+    try {
+      await signIn();
+    } catch (e) {
+      console.error(`Puter signing in failed:", ${e}`);
+    }
+    
+  };
 
   return (
     <header className="navbar">

@@ -4,7 +4,7 @@ interface AuthState {
   userId: string | null;
 }
 
-type AuthAction = {
+type AuthContext = {
   isSignedIn: boolean;
   userName: string | null;
   userId: string | null;
