@@ -1,21 +1,20 @@
-import { Box } from "lucide-react"
+import { Box } from "lucide-react";
+import Button from "./ui/Button";
 
 //Navbar function build using "rafce"
 const Navbar = () => {
-
-    const handleAuthClick = async () => {};
+  const isSignedIn = false;
+  const userName = "Guest";
+  const handleAuthClick = async () => {};
 
   return (
     <header className="navbar">
       <div className="inner">
         <div className="left">
           <div className="brand">
-
             <Box className="logo" />
 
-            <span className="name">
-                Sketchy
-            </span>
+            <span className="name">Sketchy</span>
           </div>
           <ul className="links">
             <a href="#">Product</a>
@@ -24,16 +23,33 @@ const Navbar = () => {
             <a href="#">Enterprise</a>
           </ul>
         </div>
-        
+
         <div className="actions">
-          <div className="greeting">Welcome, Guest!</div>
-          <button onClick={handleAuthClick} className="login">Login</button>
-          
-          <a href="#upload" className="cta">Get Started</a>
+          {isSignedIn ? (
+            <>
+              <span className="greeting">
+                {userName ? `Welcome, ${userName}!` : "Signed in"}
+              </span>
+
+              <Button size="sm" onClick={handleAuthClick} className="btn">
+                Log out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button size="sm" variant="ghost" onClick={handleAuthClick}>
+                log in
+              </Button>
+
+              <a href="#upload" className="cta">
+                Get Started
+              </a>
+            </>
+          )}
         </div>
       </div>
     </header>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;
