@@ -1,4 +1,4 @@
-import { ArrowRightSquareIcon, LucideLayersPlus } from "lucide-react";
+import { ArrowRightSquareIcon, ArrowUpRight, Clock, LucideLayersPlus } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import type { Route } from "./+types/home";
 import Button from "../../components/ui/Button";
@@ -13,9 +13,11 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   return (
     <div className="home">
+      {/* Navigation Bar */}
       <Navbar />
-      <section className="hero">
 
+      {/* Hero section */}
+      <section className="hero">
         <div className="announce">
           <div className="dot">
             <div className="pulse"></div>
@@ -24,7 +26,11 @@ export default function Home() {
         </div>
 
         <h1>Build Your Dream floor with Sketchy</h1>
-        <p className="subtitle">Sketchy is an AI-powered design environment that makes it easy to visualize, render and ship architectural projects faster than ever before.</p>
+        <p className="subtitle">
+          Sketchy is an AI-powered design environment that makes it easy to
+          visualize, render and ship architectural projects faster than ever
+          before.
+        </p>
 
         <div className="actions">
           <a href="#upload" className="cta">
@@ -49,6 +55,51 @@ export default function Home() {
             </div>
 
             <p>Upload images</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="projects">
+        <div className="section-inner">
+          <div className="section-head">
+            <div className="copy">
+              <h2>Projects</h2>
+              <p>
+                Your latest work and shared community projects, all in one
+                place.
+              </p>
+            </div>
+          </div>
+
+          <div className="projects-grid">
+            <div className="project-card group">
+              <div className="preview">
+                <img
+                  src="https://images.unsplash.com/photo-1505691938895-1758d7feb511?ixlib=rb-4.0.3&ixid=M3w5MTMyMXwwfDF8c2VhcmNofDJ8fGZsb29yJTIwcGxhbnxlbnwwfHx8fDE2OTQ1NjYxNzR8MA&auto=format&fit=crop&w=800&q=60"
+                  alt="Project"
+                />
+                <div className="badge">
+                  <span>Community</span>
+                </div>
+              </div>
+
+              <div className="card-body">
+                <div>
+                  <h3>Project Main</h3>
+
+                  <div className="meta">
+                    <Clock size={12} />
+                    <span>{new Date("2023-10-01").toLocaleDateString()}</span>
+                    <span>By Community</span>
+                  </div>
+                </div>
+
+                <div className="arrow">
+                  <ArrowUpRight size={12} />
+                </div>
+                
+              </div>
+            </div>
           </div>
         </div>
       </section>
