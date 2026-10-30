@@ -58,6 +58,7 @@ const Upload = ({ onComplete }: UploadProps) => {
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const headerReaderRef = useRef<FileReader | null>(null);
   const fileReaderRef = useRef<FileReader | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -68,6 +69,10 @@ const Upload = ({ onComplete }: UploadProps) => {
 
   useEffect(() => {
     return () => {
+      if (headerReaderRef.current) {
+        headerReaderRef.current.abort();
+        headerReaderRef.current = null;
+      }
       if (fileReaderRef.current) {
         fileReaderRef.current.abort();
         fileReaderRef.current = null;
@@ -101,6 +106,30 @@ const Upload = ({ onComplete }: UploadProps) => {
     }
   }, [progress, onComplete]);
 
+  const resetUploadState = (message: string) => {
+    if (headerReaderRef.current) {
+      headerReaderRef.current.abort();
+      headerReaderRef.current = null;
+    }
+    if (fileReaderRef.current) {
+      fileReaderRef.current.abort();
+      fileReaderRef.current = null;
+    }
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    if (redirectTimeoutRef.current) {
+      clearTimeout(redirectTimeoutRef.current);
+      redirectTimeoutRef.current = null;
+    }
+    setFile(null);
+    setProgress(0);
+    base64DataRef.current = null;
+    hasCompletedRef.current = false;
+    setErrorMessage(message);
+  };
+
   const validateFileBasics = (selectedFile: File): string | null => {
     if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
       return "File size exceeds the 50 MB limit.";
@@ -120,7 +149,7 @@ const Upload = ({ onComplete }: UploadProps) => {
   const processFile = (selectedFile: File) => {
     if (!isSignedIn) return;
 
-    // Reset previous error
+    // Reset previous error and cancel any ongoing reads
     setErrorMessage(null);
 
     const initialError = validateFileBasics(selectedFile);
@@ -129,22 +158,33 @@ const Upload = ({ onComplete }: UploadProps) => {
       return;
     }
 
+    if (headerReaderRef.current) {
+      headerReaderRef.current.abort();
+      headerReaderRef.current = null;
+    }
     if (fileReaderRef.current) {
       fileReaderRef.current.abort();
+      fileReaderRef.current = null;
     }
 
     // Step 1: Read initial slice to inspect magic bytes binary content
     const headerSlice = selectedFile.slice(0, 16);
     const headerReader = new FileReader();
+    headerReaderRef.current = headerReader;
 
     headerReader.onload = () => {
+      if (headerReaderRef.current !== headerReader) return;
+
       const buffer = headerReader.result as ArrayBuffer;
       if (!isValidImageBinary(buffer)) {
-        setErrorMessage(
+        headerReaderRef.current = null;
+        resetUploadState(
           "Invalid or corrupt image content. Please upload a valid JPG, PNG, or WebP file."
         );
         return;
       }
+
+      headerReaderRef.current = null;
 
       // Step 2: Content is valid, now proceed to start upload progress & read full DataURL
       hasCompletedRef.current = false;
@@ -169,7 +209,17 @@ const Upload = ({ onComplete }: UploadProps) => {
         }, PROGRESS_INTERVAL_MS);
       };
 
+      fullReader.onerror = () => {
+        if (fileReaderRef.current !== fullReader) return;
+        resetUploadState("Failed to read image file. Please try uploading again.");
+      };
+
       fullReader.readAsDataURL(selectedFile);
+    };
+
+    headerReader.onerror = () => {
+      if (headerReaderRef.current !== headerReader) return;
+      resetUploadState("Failed to read image header. Please try uploading again.");
     };
 
     headerReader.readAsArrayBuffer(headerSlice);
