@@ -1,10 +1,18 @@
-//This is a dynamically generated route for the visualizer page. It is used to display the visualizer for a specific sketch. The $id parameter is used to identify the sketch.
-import React from 'react'
+import type { Route } from "./+types/visualizer.$id";
 
-const visualizerId = () => {
-  return (
-    <div>visualizer.$id</div>
-  )
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Visualizer | Sketchy" },
+    { name: "description", content: "AI-generated 3D architectural visualization" },
+  ];
 }
 
-export default visualizerId
+const visualizerId = ({ params }: Route.ComponentProps) => {
+  return (
+    <div className="visualizer-route loading">
+      <p>Loading sketch {params.id}...</p>
+    </div>
+  );
+};
+
+export default visualizerId;

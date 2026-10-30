@@ -11,61 +11,110 @@ interface UploadProps {
   onComplete?: (base64Data: string) => void;
 }
 
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+const ALLOWED_FILE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+];
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+
 const Upload = ({ onComplete }: UploadProps) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [progress, setProgress] = useState(0);
 
+  const fileReaderRef = useRef<FileReader | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const redirectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const base64DataRef = useRef<string | null>(null);
+  const hasCompletedRef = useRef(false);
 
   const { isSignedIn } = useOutletContext<AuthContext>();
 
   useEffect(() => {
     return () => {
+      if (fileReaderRef.current) {
+        fileReaderRef.current.abort();
+        fileReaderRef.current = null;
+      }
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
       }
       if (redirectTimeoutRef.current) {
         clearTimeout(redirectTimeoutRef.current);
+        redirectTimeoutRef.current = null;
       }
     };
   }, []);
 
+  // Effect handles single-run completion transition when progress reaches 100
+  useEffect(() => {
+    if (progress >= 100 && !hasCompletedRef.current) {
+      hasCompletedRef.current = true;
+
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
+
+      redirectTimeoutRef.current = setTimeout(() => {
+        if (base64DataRef.current) {
+          onComplete?.(base64DataRef.current);
+        }
+      }, REDIRECT_DELAY_MS);
+    }
+  }, [progress, onComplete]);
+
+  const validateFile = (selectedFile: File): boolean => {
+    const isExtensionValid = ALLOWED_EXTENSIONS.some((ext) =>
+      selectedFile.name.toLowerCase().endsWith(ext)
+    );
+    const isMimeValid = ALLOWED_FILE_TYPES.includes(selectedFile.type);
+
+    if (!isExtensionValid && !isMimeValid) {
+      return false;
+    }
+
+    if (selectedFile.size > MAX_FILE_SIZE_BYTES) {
+      return false;
+    }
+
+    return true;
+  };
+
   const processFile = (selectedFile: File) => {
     if (!isSignedIn) return;
 
+    if (!validateFile(selectedFile)) {
+      return;
+    }
+
+    hasCompletedRef.current = false;
+    base64DataRef.current = null;
     setFile(selectedFile);
     setProgress(0);
 
+    if (fileReaderRef.current) {
+      fileReaderRef.current.abort();
+    }
+
     const reader = new FileReader();
+    fileReaderRef.current = reader;
 
     reader.onload = () => {
-      const base64Data = reader.result as string;
+      // Guard against callbacks firing after reader was replaced or unmounted
+      if (fileReaderRef.current !== reader) return;
+
+      base64DataRef.current = reader.result as string;
 
       if (progressIntervalRef.current) {
         clearInterval(progressIntervalRef.current);
       }
 
       progressIntervalRef.current = setInterval(() => {
-        setProgress((prevProgress) => {
-          const nextProgress = prevProgress + PROGRESS_STEP;
-
-          if (nextProgress >= 100) {
-            if (progressIntervalRef.current) {
-              clearInterval(progressIntervalRef.current);
-              progressIntervalRef.current = null;
-            }
-
-            redirectTimeoutRef.current = setTimeout(() => {
-              onComplete?.(base64Data);
-            }, REDIRECT_DELAY_MS);
-
-            return 100;
-          }
-
-          return nextProgress;
-        });
+        setProgress((prev) => Math.min(100, prev + PROGRESS_STEP));
       }, PROGRESS_INTERVAL_MS);
     };
 
@@ -112,6 +161,8 @@ const Upload = ({ onComplete }: UploadProps) => {
     if (selectedFiles && selectedFiles.length > 0) {
       processFile(selectedFiles[0]);
     }
+    // Reset input value so re-selecting the same file also triggers onChange
+    e.target.value = "";
   };
 
   return (
@@ -157,7 +208,7 @@ const Upload = ({ onComplete }: UploadProps) => {
 
             <h3>{file.name}</h3>
 
-            {/* Progressbar */}
+            {/* Progress bar */}
             <div className="progress">
               <div className="bar" style={{ width: `${progress}%` }} />
 
