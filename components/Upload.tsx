@@ -157,7 +157,7 @@ const Upload = ({ onComplete }: UploadProps) => {
 
             <h3>{file.name}</h3>
 
-            {/* Progress bar */}
+            {/* Progressbar */}
             <div className="progress">
               <div className="bar" style={{ width: `${progress}%` }} />
 
