@@ -42,7 +42,7 @@ export default function Home() {
       return false;
     }
 
-    setProjects((prev) => [newItem, ...prev]); // Update the projects state with the new item
+    setProjects((prev) => [saved, ...prev]); // Update the projects state with the new item
     // Navigate to the visualizer page with the uploaded sketch ID
     navigate(`/visualizer/${newId}`, {
       state: {
