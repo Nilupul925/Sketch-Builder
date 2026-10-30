@@ -2,6 +2,8 @@ import { ArrowRightSquareIcon, ArrowUpRight, Clock, LucideLayersPlus } from "luc
 import Navbar from "../../components/Navbar";
 import type { Route } from "./+types/home";
 import Button from "../../components/ui/Button";
+import Upload from "../../components/Upload";
+import { useNavigate } from "react-router";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,6 +13,16 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
+
+  const navigate = useNavigate();
+
+  const handleUploadComplete = async (base64Data: string) => {
+    const newId = Date.now().toString(); // Generate a unique ID for the uploaded sketch
+    // Navigate to the visualizer page with the uploaded sketch ID
+    navigate(`/visualizer/${newId}`);
+    return true;
+  };
+
   return (
     <div className="home">
       {/* Navigation Bar */}
@@ -54,7 +66,7 @@ export default function Home() {
               <p>Supports JPG, PNG formats up to 10MB</p>
             </div>
 
-            <p>Upload images</p>
+            <Upload onComplete={handleUploadComplete} />
           </div>
         </div>
       </section>
