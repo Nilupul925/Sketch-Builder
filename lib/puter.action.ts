@@ -16,7 +16,7 @@ export const getCurrentUser = async () => {
 };
 
 export const createProject = async ({
-  item
+  item,
 }: CreateProjectParams): Promise<DesignItem | null | undefined> => {
     const projectId = item.id;
     const hosting = await getOrCreateHostingConfig();
