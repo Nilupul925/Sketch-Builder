@@ -1,4 +1,4 @@
-import { ArrowRightSquareIcon } from "lucide-react";
+import { ArrowRightSquareIcon, LucideLayersPlus } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import type { Route } from "./+types/home";
 import Button from "../../components/ui/Button";
@@ -33,6 +33,23 @@ export default function Home() {
           <Button variant="outline" size="lg" className="Demo">
             Watch Demo
           </Button>
+        </div>
+
+        <div id="upload" className="upload-shell">
+          <div className="grid-overlay" />
+
+          <div className="upload-card">
+            <div className="upload-head">
+              <div className="upload-icon">
+                <LucideLayersPlus className="icon" />
+              </div>
+
+              <h3>Upload Your floor plan</h3>
+              <p>Supports JPG, PNG formats up to 10MB</p>
+            </div>
+
+            <p>Upload images</p>
+          </div>
         </div>
       </section>
     </div>
