@@ -1,7 +1,9 @@
 import {
+  ArrowRight,
   ArrowRightSquareIcon,
   ArrowUpRight,
   Clock,
+  Layers,
   LucideLayersPlus,
 } from "lucide-react";
 import Navbar from "../../components/Navbar";
@@ -9,8 +11,8 @@ import type { Route } from "./+types/home";
 import Button from "../../components/ui/Button";
 import Upload from "../../components/Upload";
 import { useNavigate } from "react-router";
-import { useState } from "react";
-import { createProject } from "../../lib/puter.action";
+import { useEffect, useRef, useState } from "react";
+import { createProject, getProjects } from "../../lib/puter.action";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -22,64 +24,86 @@ export function meta({}: Route.MetaArgs) {
 export default function Home() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<DesignItem[]>([]);
+  const isCreatingProjectRef = useRef(false);
 
-  const handleUploadComplete = async (base64Data: string) => {
-    const newId = Date.now().toString(); // Generate a unique ID for the uploaded sketch
-    const name = `Residence ${newId}`; // Generate a name for the uploaded sketch
+  const handleUploadComplete = async (base64Image: string) => {
+    if (isCreatingProjectRef.current) return false;
+    isCreatingProjectRef.current = true;
 
-    const newItem = {
-      id: newId,
-      name,
-      sourceImage: base64Data,
-      renderedImage: undefined,
-      timestamp: Date.now(),
+    try {
+      const newId = Date.now().toString();
+      const name = `Residence ${newId}`;
+
+      const newItem = {
+        id: newId,
+        name,
+        sourceImage: base64Image,
+        renderedImage: undefined,
+        timestamp: Date.now(),
+      };
+
+      const saved = await createProject({
+        item: newItem,
+        visibility: "private",
+      });
+
+      if (!saved) {
+        console.error("Failed to create project");
+        return false;
+      }
+
+      setProjects((prev) => [saved, ...prev]);
+
+      navigate(`/visualizer/${newId}`, {
+        state: {
+          initialImage: saved.sourceImage,
+          initialRendered: saved.renderedImage || null,
+          name,
+        },
+      });
+
+      return true;
+    } finally {
+      isCreatingProjectRef.current = false;
+    }
+  };
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const items = await getProjects();
+
+      setProjects(items);
     };
 
-    const saved = await createProject({ item: newItem, visibility: "private" });
-
-    if (!saved) {
-      console.error("Failed to save project");
-      return false;
-    }
-
-    setProjects((prev) => [saved, ...prev]); // Update the projects state with the new item
-    // Navigate to the visualizer page with the uploaded sketch ID
-    navigate(`/visualizer/${newId}`, {
-      state: {
-        initialImage: saved.sourceImage,
-        renderedImage: saved.renderedImage || null,
-        name,
-      },
-    });
-    return true;
-  };
+    fetchProjects();
+  }, []);
 
   return (
     <div className="home">
-      {/* Navigation Bar */}
       <Navbar />
 
-      {/* Hero section */}
       <section className="hero">
         <div className="announce">
           <div className="dot">
             <div className="pulse"></div>
           </div>
-          <p>Introducing Sketch-Builder</p>
+
+          <p>Introducing Sketchy</p>
         </div>
 
-        <h1>Build Your Dream floor with Sketchy</h1>
+        <h1>Build beautiful spaces at the speed of thought with Sketchy</h1>
+
         <p className="subtitle">
-          Sketchy is an AI-powered design environment that makes it easy to
-          visualize, render and ship architectural projects faster than ever
-          before.
+          Sketchy is an AI-first design environment that helps you visualize,
+          render, and ship architectural projects faster than ever.
         </p>
 
         <div className="actions">
           <a href="#upload" className="cta">
-            Start Building <ArrowRightSquareIcon className="icon" />
+            Start Building <ArrowRight className="icon" />
           </a>
-          <Button variant="outline" size="lg" className="Demo">
+
+          <Button variant="outline" size="lg" className="demo">
             Watch Demo
           </Button>
         </div>
@@ -90,11 +114,11 @@ export default function Home() {
           <div className="upload-card">
             <div className="upload-head">
               <div className="upload-icon">
-                <LucideLayersPlus className="icon" />
+                <Layers className="icon" />
               </div>
 
-              <h3>Upload Your floor plan</h3>
-              <p>Supports JPG, PNG formats up to 50MB</p>
+              <h3>Upload your floor plan</h3>
+              <p>Supports JPG, PNG, formats up to 10MB</p>
             </div>
 
             <Upload onComplete={handleUploadComplete} />
@@ -117,11 +141,14 @@ export default function Home() {
           <div className="projects-grid">
             {projects.map(
               ({ id, name, renderedImage, sourceImage, timestamp }) => (
-                <div className="project-card group">
+                <div
+                  key={id}
+                  className="project-card group"
+                  onClick={() => navigate(`/visualizer/${id}`)}
+                >
                   <div className="preview">
-                    <img
-                      src={renderedImage || sourceImage}
-                    />
+                    <img src={renderedImage || sourceImage} alt="Project" />
+
                     <div className="badge">
                       <span>Community</span>
                     </div>
@@ -133,15 +160,12 @@ export default function Home() {
 
                       <div className="meta">
                         <Clock size={12} />
-                        <span>
-                          {new Date( timestamp ).toLocaleDateString()}
-                        </span>
-                        <span>By Community</span>
+                        <span>{new Date(timestamp).toLocaleDateString()}</span>
+                        <span>By Theekshana</span>
                       </div>
                     </div>
-
                     <div className="arrow">
-                      <ArrowUpRight size={12} />
+                      <ArrowUpRight size={18} />
                     </div>
                   </div>
                 </div>
