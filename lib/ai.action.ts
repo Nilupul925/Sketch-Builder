@@ -31,6 +31,7 @@ export const fetchAsDataUrl = async (url: string): Promise<string> => {
   });
 };
 
+//Generate function
 export const generate3DView = async ({ sourceImage }: Generate3DViewParams) => {
   const dataUrl = sourceImage.startsWith("data:")
     ? sourceImage
