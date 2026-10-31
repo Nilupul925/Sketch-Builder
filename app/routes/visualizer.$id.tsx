@@ -23,15 +23,34 @@ const VisualizerId = () => {
   const [currentImage, setCurrentImage] = useState<string | null>(null);
 
   const handleBack = () => navigate("/");
-  const handleExport = () => {
+  const handleExport = async () => {
     if (!currentImage) return;
 
-    const link = document.createElement("a");
-    link.href = currentImage;
-    link.download = `roomify-${id || "design"}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const exportUrl = currentImage;
+    const filename = `roomify-${id || "design"}.png`;
+
+    try {
+      const response = await fetch(exportUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image (${response.status})`);
+      }
+
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+
+      try {
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } finally {
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 0);
+      }
+    } catch (error) {
+      console.error("Failed to export image: ", error);
+    }
   };
 
   const runGeneration = async (item: DesignItem) => {
