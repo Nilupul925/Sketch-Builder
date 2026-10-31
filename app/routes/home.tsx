@@ -1,6 +1,13 @@
-import type { Route } from "./+types/home";
+import {
+  ArrowRight,
+  ArrowRightSquareIcon,
+  ArrowUpRight,
+  Clock,
+  Layers,
+  LucideLayersPlus,
+} from "lucide-react";
 import Navbar from "../../components/Navbar";
-import { ArrowRight, ArrowUpRight, Clock, Layers } from "lucide-react";
+import type { Route } from "./+types/home";
 import Button from "../../components/ui/Button";
 import Upload from "../../components/Upload";
 import { useNavigate } from "react-router";
@@ -20,9 +27,10 @@ export default function Home() {
   const isCreatingProjectRef = useRef(false);
 
   const handleUploadComplete = async (base64Image: string) => {
+    if (isCreatingProjectRef.current) return false;
+    isCreatingProjectRef.current = true;
+
     try {
-      if (isCreatingProjectRef.current) return false;
-      isCreatingProjectRef.current = true;
       const newId = Date.now().toString();
       const name = `Residence ${newId}`;
 

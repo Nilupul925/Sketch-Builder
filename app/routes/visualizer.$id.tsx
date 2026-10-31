@@ -36,13 +36,16 @@ const VisualizerId = () => {
 
   const runGeneration = async (item: DesignItem) => {
     if (!id || !item.sourceImage) return;
+    const activeRouteId = id;
 
     try {
       setIsProcessing(true);
       const result = await generate3DView({ sourceImage: item.sourceImage });
 
       if (result.renderedImage) {
-        setCurrentImage(result.renderedImage);
+        if (id === activeRouteId) {
+          setCurrentImage(result.renderedImage);
+        }
 
         const updatedItem = {
           ...item,
@@ -58,7 +61,7 @@ const VisualizerId = () => {
           visibility: "private",
         });
 
-        if (saved) {
+        if (saved && id === activeRouteId) {
           setProject(saved);
           setCurrentImage(saved.renderedImage || result.renderedImage);
         }
@@ -66,7 +69,9 @@ const VisualizerId = () => {
     } catch (error) {
       console.error("Generation failed: ", error);
     } finally {
-      setIsProcessing(false);
+      if (id === activeRouteId) {
+        setIsProcessing(false);
+      }
     }
   };
 
