@@ -27,7 +27,7 @@ const VisualizerId = () => {
     if (!currentImage) return;
 
     const exportUrl = currentImage;
-    const filename = `roomify-${id || "design"}.png`;
+    const filename = `sketchy-${id || "design"}.png`;
 
     try {
       const response = await fetch(exportUrl);
@@ -146,7 +146,7 @@ const VisualizerId = () => {
         <div className="brand">
           <Box className="logo" />
 
-          <span className="name">Roomify</span>
+          <span className="name">Sketchy</span>
         </div>
         <Button variant="ghost" size="sm" onClick={handleBack} className="exit">
           <X className="icon" /> Exit Editor
